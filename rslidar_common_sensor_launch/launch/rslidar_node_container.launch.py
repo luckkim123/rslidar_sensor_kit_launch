@@ -133,6 +133,7 @@ def launch_setup(context, *args, **kwargs):
         ring_outlier_filter_parameters = {
             "output_frame": ""
         }  # keep the output frame as the input frame
+        
     nodes.append(
         ComposableNode(
             package="pointcloud_preprocessor",
@@ -156,7 +157,23 @@ def launch_setup(context, *args, **kwargs):
         composable_node_descriptions=nodes,
         output="both",
     )
-    return [container]
+
+    outlier_relay_node = Node(
+        package='topic_tools',
+        executable='relay',
+        # arguments=['mirror_cropped/pointcloud_ex', 'outlier_filtered/pointcloud'],
+        arguments=['rectified/pointcloud_ex', 'outlier_filtered/pointcloud'],
+        name='pointcloud_outlier_relay',
+    )
+
+    concatenated_relay_node = Node(
+        package='topic_tools',
+        executable='relay',
+        arguments=['outlier_filtered/pointcloud', '/sensing/lidar/concatenated/pointcloud'],
+        name='pointcloud_concatenated_relay',
+    )
+
+    return [container, outlier_relay_node, concatenated_relay_node]
 
 
 def generate_launch_description():
@@ -168,7 +185,7 @@ def generate_launch_description():
             DeclareLaunchArgument(name, default_value=default_value, description=description)
         )
     add_launch_arg("base_frame", "base_link", "base frame id")
-    add_launch_arg("frame_id", "lidar", "frame id")
+    add_launch_arg("frame_id", LaunchConfiguration("frame_id"), "frame id")
     add_launch_arg("input_frame", LaunchConfiguration("base_frame"), "use for cropbox")
     add_launch_arg("output_frame", LaunchConfiguration("base_frame"), "use for cropbox")
     add_launch_arg(
@@ -185,34 +202,7 @@ def generate_launch_description():
         name="rslidar_sdk_node",
         parameters=[
             {
-                # Sensor kit settings
-                'launch_driver': LaunchConfiguration('launch_driver'),
-                'use_concat_filter': LaunchConfiguration('use_concat_filter'),
-                'vehicle_id': LaunchConfiguration('vehicle_id'),
-                'vehicle_mirror_param_file': LaunchConfiguration('vehicle_mirror_param_file'),  
-
-                # Lidar settings
-                'lidar_type': LaunchConfiguration('lidar_type'),
-                'msg_source': LaunchConfiguration('msg_source'),
-                'send_packet_ros': LaunchConfiguration('send_packet_ros'),
-                'send_point_cloud_ros': LaunchConfiguration('send_point_cloud_ros'),
-                'msop_port': LaunchConfiguration('msop_port'),
-                'difop_port': LaunchConfiguration('difop_port'),
-                'start_angle': LaunchConfiguration('start_angle'),
-                'end_angle': LaunchConfiguration('end_angle'),
-                'wait_for_difop': LaunchConfiguration('wait_for_difop'),
-                'min_distance': LaunchConfiguration('min_distance'),
-                'max_distance': LaunchConfiguration('max_distance'),
-                'use_lidar_clock': LaunchConfiguration('use_lidar_clock'),
-                'pcap_path': LaunchConfiguration('pcap_path'),
-                'group_address': LaunchConfiguration('group_address'),
-                'host_address': LaunchConfiguration('host_address'),
-
-                # ROS settings
-                'ros_frame_id': LaunchConfiguration('ros_frame_id'),
-                'ros_recv_packet_topic': LaunchConfiguration('ros_recv_packet_topic'),
-                'ros_send_packet_topic': LaunchConfiguration('ros_send_packet_topic'),
-                'ros_send_point_cloud_topic': LaunchConfiguration('ros_send_point_cloud_topic'),
+                "config_path": LaunchConfiguration("config_path"),
             }
         ],
         remappings=[
@@ -235,6 +225,6 @@ def generate_launch_description():
     return launch.LaunchDescription(
         launch_arguments
         + [set_container_executable, set_container_mt_executable]
+        + [node]        
         + [OpaqueFunction(function=launch_setup)]
-        +[node]
     )

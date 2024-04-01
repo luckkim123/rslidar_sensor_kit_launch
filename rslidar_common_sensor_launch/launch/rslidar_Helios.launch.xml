@@ -1,0 +1,23 @@
+<launch>
+  <!-- Params -->
+  <!-- Sensor kit settings-->
+  <arg name="config_path" default="$(find-pkg-share rslidar_common_sensor_launch)/config/config.yaml"/>
+  <arg name="vehicle_mirror_param_file"/>
+  <arg name="container_name" default="robosense_node_container"/>
+  <arg name="frame_id" default="helios"/>
+  <arg name="sensor_ip" default="192.168.1.201"/>
+
+  <include file="$(find-pkg-share rslidar_common_sensor_launch)/launch/rslidar_node_container.launch.py">
+    <arg name="config_path" value="$(var config_path)"/>
+    <arg name="use_intra_process" value="true"/>
+    <arg name="use_multithread" value="false"/>
+    <arg name="container_name" value="$(var container_name)"/>
+    <arg name="frame_id" value="$(var frame_id)"/>
+    <arg name="vehicle_mirror_param_file" value="$(var vehicle_mirror_param_file)"/>
+  </include>
+
+  <!-- Velodyne Monitor -->
+  <include file="$(find-pkg-share velodyne_monitor)/launch/velodyne_monitor.launch.xml" if="$(var launch_driver)">
+    <arg name="ip_address" value="$(var sensor_ip)"/>
+  </include>
+</launch>

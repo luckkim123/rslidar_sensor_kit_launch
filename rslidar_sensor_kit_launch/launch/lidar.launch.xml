@@ -6,6 +6,7 @@
   <arg name="vehicle_mirror_param_file" default="$(find-pkg-share $(var vehicle_model)_description)/config/vehicle_info.param.yaml"/>
   <arg name="pointcloud_container_name" default="pointcloud_container"/>
   <arg name="hesai_launch_hw" default="false"/>
+  <arg name="config_path" default="$(find-pkg-share rslidar_common_sensor_launch)/config"/>
 
   <group>
     <push-ros-namespace namespace="lidar"/>
@@ -28,33 +29,23 @@
 
     <group>
       <push-ros-namespace namespace="left"/>
-      <include file="$(find-pkg-share rslidar_common_sensor_launch)/launch/rslidar_Helios16.launch.xml">
-        <arg name="max_range" value="200.0"/>
-        <arg name="sensor_frame" value="helios_left"/>
-        <arg name="sensor_ip" value="192.168.1.200"/>
-        <arg name="host_ip" value="$(var host_ip)"/>
-        <arg name="data_port" value="6699"/>
-        <arg name="gnss_port" value="7788"/>
-        <arg name="scan_phase" value="300.0"/>
-        <arg name="launch_driver" value="$(var launch_driver)"/>
+      <include file="$(find-pkg-share rslidar_common_sensor_launch)/launch/rslidar_Helios.launch.xml">
+        <arg name="config_path" value="$(var config_path)/helios_left_config.yaml"/>
+        <arg name="sensor_ip" value="192.168.1.201"/>
         <arg name="vehicle_mirror_param_file" value="$(var vehicle_mirror_param_file)"/>
         <arg name="container_name" value="$(var pointcloud_container_name)"/>
+        <arg name="frame_id" value="helios_left"/>
       </include>
     </group>
 
     <group>
       <push-ros-namespace namespace="right"/>
-      <include file="$(find-pkg-share rslidar_common_sensor_launch)/launch/rslidar_Helios16.launch.xml">
-        <arg name="max_range" value="200.0"/>
-        <arg name="sensor_frame" value="helios_right"/>
-        <arg name="sensor_ip" value="192.168.1.201"/>
-        <arg name="host_ip" value="$(var host_ip)"/>
-        <arg name="data_port" value="5588"/>
-        <arg name="gnss_port" value="6677"/>
-        <arg name="scan_phase" value="300.0"/>
-        <arg name="launch_driver" value="$(var launch_driver)"/>
+      <include file="$(find-pkg-share rslidar_common_sensor_launch)/launch/rslidar_Helios.launch.xml">
+        <arg name="config_path" value="$(var config_path)/helios_right_config.yaml"/>
+        <arg name="sensor_ip" value="192.168.1.200"/>
         <arg name="vehicle_mirror_param_file" value="$(var vehicle_mirror_param_file)"/>
         <arg name="container_name" value="$(var pointcloud_container_name)"/>
+        <arg name="frame_id" value="helios_right"/>
       </include>
     </group>
 
